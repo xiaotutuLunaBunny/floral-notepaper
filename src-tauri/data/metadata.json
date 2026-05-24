@@ -1,0 +1,24 @@
+{
+  "notes": [
+    {
+      "id": "78effb51-09e6-463e-956f-9210d3be882e",
+      "title": "兔子便签-安装",
+      "fileName": "78effb51-09e6-463e-956f-9210d3be882e_兔子便签-安装.md",
+      "category": "",
+      "createdAt": "2026-05-24T14:57:27.236647990Z",
+      "updatedAt": "2026-05-24T15:01:50.251759515Z",
+      "wordCount": 2286,
+      "preview": "# 🌸 Floral Notepaper - Tauri 开发环境安装教程 > Ubuntu 24 / Debian 系 Linux 安装指南 > 适用于：Ta"
+    },
+    {
+      "id": "1a9433d1-679d-4015-b3d5-1809c1bb010d",
+      "title": "",
+      "fileName": "1a9433d1-679d-4015-b3d5-1809c1bb010d.md",
+      "category": "",
+      "createdAt": "2026-05-24T14:59:16.990558516Z",
+      "updatedAt": "2026-05-24T14:59:16.990558516Z",
+      "wordCount": 290,
+      "preview": "# 🌸 Floral Notepaper - Tauri 环境搭建指南 > 一个基于 Tauri + Vite + Rust 的桌面应用开发环境配置文档 > 适"
+    }
+  ]
+}

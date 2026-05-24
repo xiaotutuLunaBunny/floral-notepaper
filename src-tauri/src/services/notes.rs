@@ -20,7 +20,7 @@ const LEGACY_MACOS_GLOBAL_SHORTCUTS: [&str; 5] = [
 #[cfg(target_os = "macos")]
 const MACOS_SHORTCUT_MIGRATION_MARKER: &str = ".macos-shortcut-default-v3";
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
     #[serde(default = "default_locale")]
@@ -58,6 +58,15 @@ pub struct AppConfig {
     pub surface_height: Option<u32>,
     #[serde(default = "default_toggle_visibility_shortcut")]
     pub toggle_visibility_shortcut: String,
+    // Background image settings
+    #[serde(default)]
+    pub background_image: String,
+    #[serde(default = "default_background_image_opacity")]
+    pub background_image_opacity: f64,
+    #[serde(default)]
+    pub background_image_enabled: bool,
+    #[serde(default = "default_background_image_fit")]
+    pub background_image_fit: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -200,11 +209,28 @@ fn default_base_dir() -> Result<PathBuf, AppError> {
         return Ok(PathBuf::from(home)
             .join("Library")
             .join("Application Support")
-            .join("花笺"));
+            .join("floral-notepaper"));
     }
 
+    #[cfg(target_os = "linux")]
+    if let Ok(home) = env::var("HOME") {
+        return Ok(PathBuf::from(home)
+            .join(".local")
+            .join("share")
+            .join("floral-notepaper"));
+    }
+
+    #[cfg(target_os = "windows")]
     if let Ok(user_profile) = env::var("USERPROFILE") {
-        return Ok(PathBuf::from(user_profile).join("Documents").join("花笺"));
+        return Ok(PathBuf::from(user_profile)
+            .join("AppData")
+            .join("Roaming")
+            .join("floral-notepaper"));
+    }
+
+    // Fallback for other platforms
+    if let Ok(home) = env::var("HOME") {
+        return Ok(PathBuf::from(home).join(".floral-notepaper"));
     }
 
     Ok(env::current_dir()?.join("data"))
@@ -661,6 +687,10 @@ impl NoteStore {
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: default_toggle_visibility_shortcut(),
+            background_image: String::new(),
+            background_image_opacity: default_background_image_opacity(),
+            background_image_enabled: false,
+            background_image_fit: default_background_image_fit(),
         }
     }
 
@@ -997,6 +1027,14 @@ fn default_locale() -> String {
     "zh-CN".into()
 }
 
+fn default_background_image_opacity() -> f64 {
+    0.5
+}
+
+fn default_background_image_fit() -> String {
+    "cover".into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1136,6 +1174,10 @@ mod tests {
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: String::new(),
+            background_image: "/path/to/image.png".into(),
+            background_image_opacity: 0.7,
+            background_image_enabled: true,
+            background_image_fit: "cover".into(),
         };
 
         store.save_config(saved.clone()).expect("save config");

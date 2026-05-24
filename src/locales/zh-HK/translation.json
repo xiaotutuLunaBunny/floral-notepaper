@@ -173,6 +173,20 @@
       "surface": "小窗筆記自動儲存"
     },
     "autostart": "開機自啟",
+    "backgroundImage": {
+      "active": "已啟用",
+      "clear": "清除背景圖片",
+      "fit": "填充方式",
+      "fitMode": {
+        "contain": "適應",
+        "cover": "覆蓋",
+        "fill": "拉伸"
+      },
+      "label": "背景圖片",
+      "notSet": "未設定",
+      "opacity": "透明度",
+      "select": "選擇圖片"
+    },
     "closeTitle": "關閉設定",
     "closeToTray": "關閉至系統匣",
     "defaultView": {

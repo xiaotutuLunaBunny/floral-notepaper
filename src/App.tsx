@@ -5,7 +5,7 @@ import { MainWindow } from "./components/MainWindow";
 import { NotePad } from "./components/NotePad";
 import { TileShowcase } from "./components/TileShowcase";
 import { getConfig } from "./features/settings/api";
-import { applyTheme, watchSystemTheme } from "./features/settings/theme";
+import { applyTheme, applyBackgroundImage, watchSystemTheme } from "./features/settings/theme";
 import type { AppConfig, ThemeOption } from "./features/settings/types";
 import { getInitialRoute } from "./features/windows/windowRoutes";
 import { syncLanguage } from "./locales";
@@ -17,12 +17,21 @@ function App() {
 
   useEffect(() => {
     let cleanup = () => {};
+    let bgCleanup = () => {};
     getConfig()
       .then((config) => {
         const theme = (config.theme || "system") as ThemeOption;
         applyTheme(theme);
         cleanup = watchSystemTheme(theme);
         void syncLanguage(config.locale);
+
+        // Apply background image if enabled
+        applyBackgroundImage({
+          backgroundImageEnabled: config.backgroundImageEnabled ?? false,
+          backgroundImage: config.backgroundImage ?? "",
+          backgroundImageOpacity: config.backgroundImageOpacity ?? 0.5,
+          backgroundImageFit: config.backgroundImageFit ?? "cover",
+        });
       })
       .catch(() => {});
     return () => cleanup();
@@ -30,12 +39,21 @@ function App() {
 
   useEffect(() => {
     let themeCleanup = () => {};
+    let bgCleanup = () => {};
     const unlisten = listen<AppConfig>("config-changed", (event) => {
       const theme = (event.payload.theme || "system") as ThemeOption;
       applyTheme(theme);
       themeCleanup();
       themeCleanup = watchSystemTheme(theme);
       void syncLanguage(event.payload.locale);
+
+      // Apply background image changes
+      applyBackgroundImage({
+        backgroundImageEnabled: event.payload.backgroundImageEnabled ?? false,
+        backgroundImage: event.payload.backgroundImage ?? "",
+        backgroundImageOpacity: event.payload.backgroundImageOpacity ?? 0.5,
+        backgroundImageFit: event.payload.backgroundImageFit ?? "cover",
+      });
     });
     return () => {
       themeCleanup();
@@ -59,6 +77,8 @@ function App() {
 
   return (
     <ContextMenuProvider>
+      {/* Background layer for wallpaper */}
+      <div className="app-bg-layer" />
       <div className="app-window-shell h-screen font-body text-ink overflow-hidden">
         {activeView === "main" ? (
           <MainWindow />

@@ -173,6 +173,20 @@
       "surface": "小窗笔记自动保存"
     },
     "autostart": "开机自启",
+    "backgroundImage": {
+      "active": "已启用",
+      "clear": "清除背景图片",
+      "fit": "填充方式",
+      "fitMode": {
+        "contain": "适应",
+        "cover": "覆盖",
+        "fill": "拉伸"
+      },
+      "label": "背景图片",
+      "notSet": "未设置",
+      "opacity": "透明度",
+      "select": "选择图片"
+    },
     "closeTitle": "关闭设置",
     "closeToTray": "关闭到托盘",
     "defaultView": {

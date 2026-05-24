@@ -173,6 +173,20 @@
       "surface": "Auto-save surface notes"
     },
     "autostart": "Launch on Startup",
+    "backgroundImage": {
+      "active": "Active",
+      "clear": "Clear Background Image",
+      "fit": "Fill Mode",
+      "fitMode": {
+        "contain": "Contain",
+        "cover": "Cover",
+        "fill": "Stretch"
+      },
+      "label": "Background Image",
+      "notSet": "Not set",
+      "opacity": "Opacity",
+      "select": "Select Image"
+    },
     "closeTitle": "Close Settings",
     "closeToTray": "Close to Tray",
     "defaultView": {

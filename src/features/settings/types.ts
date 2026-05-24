@@ -25,4 +25,9 @@ export interface AppConfig {
   surfaceWidth?: number;
   surfaceHeight?: number;
   toggleVisibilityShortcut: string;
+  // Background image settings
+  backgroundImage: string;
+  backgroundImageOpacity: number;
+  backgroundImageEnabled: boolean;
+  backgroundImageFit: "cover" | "contain" | "fill";
 }

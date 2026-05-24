@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeyRecorder } from "@tanstack/react-hotkeys";
 import { useTranslation } from "react-i18next";
-import { checkGlobalShortcut } from "../features/settings/api";
+import { checkGlobalShortcut, chooseImageFile } from "../features/settings/api";
+import { applyBackgroundImage } from "../features/settings/theme";
 import type { AppConfig, ThemeOption, TileColorMode, ViewMode } from "../features/settings/types";
 import {
   formatHeldKeys,
@@ -28,6 +29,82 @@ export function SettingsPanel({ config, onChange, onChooseNotesDir, onClose }: S
   const setConfigValue = <Key extends keyof AppConfig>(key: Key, value: AppConfig[Key]) => {
     onChange({ ...config, [key]: value });
   };
+
+  // Update background image with multiple fields at once for immediate preview
+  const updateBackgroundImage = (updates: Partial<AppConfig>) => {
+    onChange({ ...config, ...updates });
+  };
+
+  const handleChooseBackgroundImage = async () => {
+    const path = await chooseImageFile();
+    if (path) {
+      // Update all background image fields at once for immediate preview
+      updateBackgroundImage({
+        backgroundImage: path,
+        backgroundImageEnabled: true,
+      });
+      // Apply background image immediately for preview
+      applyBackgroundImage({
+        backgroundImageEnabled: true,
+        backgroundImage: path,
+        backgroundImageOpacity: config.backgroundImageOpacity ?? 0.5,
+        backgroundImageFit: config.backgroundImageFit ?? "cover",
+      });
+    }
+  };
+
+  const handleClearBackgroundImage = () => {
+    updateBackgroundImage({
+      backgroundImage: "",
+      backgroundImageEnabled: false,
+    });
+    // Remove background image immediately
+    applyBackgroundImage({
+      backgroundImageEnabled: false,
+      backgroundImage: "",
+      backgroundImageOpacity: 0,
+      backgroundImageFit: "cover",
+    });
+  };
+
+  const handleOpacityChange = (opacity: number) => {
+    const newOpacity = opacity / 100;
+    updateBackgroundImage({ backgroundImageOpacity: newOpacity });
+    // Apply immediately
+    if (config.backgroundImage && config.backgroundImageEnabled) {
+      applyBackgroundImage({
+        backgroundImageEnabled: true,
+        backgroundImage: config.backgroundImage,
+        backgroundImageOpacity: newOpacity,
+        backgroundImageFit: config.backgroundImageFit ?? "cover",
+      });
+    }
+  };
+
+  const handleFitChange = (fit: "cover" | "contain" | "fill") => {
+    updateBackgroundImage({ backgroundImageFit: fit });
+    // Apply immediately
+    if (config.backgroundImage && config.backgroundImageEnabled) {
+      applyBackgroundImage({
+        backgroundImageEnabled: true,
+        backgroundImage: config.backgroundImage,
+        backgroundImageOpacity: config.backgroundImageOpacity ?? 0.5,
+        backgroundImageFit: fit,
+      });
+    }
+  };
+
+  const handleBgEnabledChange = (enabled: boolean) => {
+    updateBackgroundImage({ backgroundImageEnabled: enabled });
+    // Apply immediately
+    applyBackgroundImage({
+      backgroundImageEnabled: enabled,
+      backgroundImage: config.backgroundImage ?? "",
+      backgroundImageOpacity: config.backgroundImageOpacity ?? 0.5,
+      backgroundImageFit: config.backgroundImageFit ?? "cover",
+    });
+  };
+
   const tileColorModes = useMemo<Array<{ value: TileColorMode; label: string }>>(
     () => [
       {
@@ -149,6 +226,117 @@ export function SettingsPanel({ config, onChange, onChooseNotesDir, onClose }: S
             value={config.locale}
             onChange={(value) => setConfigValue("locale", value)}
           />
+        </section>
+
+        {/* Background Image Settings */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-[11px] font-body text-ink-faint">
+              {t("settings.backgroundImage.label", { defaultValue: "背景图片" })}
+            </label>
+            <ToggleSwitch
+              checked={config.backgroundImageEnabled}
+              onChange={handleBgEnabledChange}
+            />
+          </div>
+          {config.backgroundImageEnabled && (
+            <>
+              {/* Image Preview */}
+              {config.backgroundImage && (
+                <div
+                  className="bg-image-preview"
+                  style={{
+                    backgroundImage: `url(${config.backgroundImage.startsWith("http") ? config.backgroundImage : config.backgroundImage})`,
+                    backgroundSize: config.backgroundImageFit ?? "cover",
+                  }}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="bg-mode-indicator">
+                      {t("settings.backgroundImage.active", { defaultValue: "已启用" })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Image Path Display */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={
+                    config.backgroundImage ||
+                    t("settings.backgroundImage.notSet", { defaultValue: "未设置" })
+                  }
+                  readOnly
+                  className="min-w-0 flex-1 h-8 px-2.5 rounded-lg bg-paper-warm/70 border border-paper-deep/40 text-[11px] font-mono text-ink-faint truncate"
+                />
+                <button
+                  type="button"
+                  onClick={handleChooseBackgroundImage}
+                  className="h-8 px-3 rounded-lg border border-paper-deep/45 text-[11px] text-ink-faint hover:text-bamboo hover:bg-bamboo-mist/50 transition-colors cursor-pointer"
+                >
+                  {t("settings.backgroundImage.select", { defaultValue: "选择图片" })}
+                </button>
+              </div>
+
+              {/* Opacity Slider */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-body text-ink-faint/70">
+                    {t("settings.backgroundImage.opacity", { defaultValue: "透明度" })}
+                  </label>
+                  <span className="text-[11px] font-mono text-ink-soft">
+                    {Math.round((config.backgroundImageOpacity ?? 0.5) * 100)}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={(config.backgroundImageOpacity ?? 0.5) * 100}
+                  onChange={(event) => handleOpacityChange(Number(event.target.value))}
+                  className="w-full h-1.5 accent-bamboo cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-[3px] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-paper-deep/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-bamboo [&::-webkit-slider-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.15)]"
+                />
+              </div>
+
+              {/* Fit Mode */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-body text-ink-faint/70">
+                  {t("settings.backgroundImage.fit", { defaultValue: "填充方式" })}
+                </label>
+                <div className="flex gap-1">
+                  {(["cover", "contain", "fill"] as const).map((fit) => (
+                    <button
+                      key={fit}
+                      type="button"
+                      onClick={() => handleFitChange(fit)}
+                      className={`flex-1 h-7 rounded-lg border text-[11px] transition-colors cursor-pointer ${
+                        config.backgroundImageFit === fit
+                          ? "bg-bamboo-mist/50 border-bamboo text-bamboo"
+                          : "bg-paper-warm/45 border-paper-deep/40 text-ink-faint hover:border-paper-deep/60"
+                      }`}
+                    >
+                      {t(`settings.backgroundImage.fitMode.${fit}`, {
+                        defaultValue:
+                          fit === "cover" ? "覆盖" : fit === "contain" ? "适应" : "拉伸",
+                      })}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Clear Button */}
+              {config.backgroundImage && (
+                <button
+                  type="button"
+                  onClick={handleClearBackgroundImage}
+                  className="w-full h-7 rounded-lg border border-paper-deep/45 text-[11px] text-ink-faint hover:text-red-400 hover:bg-danger-bg transition-colors cursor-pointer"
+                >
+                  {t("settings.backgroundImage.clear", { defaultValue: "清除背景图片" })}
+                </button>
+              )}
+            </>
+          )}
         </section>
 
         <section className="space-y-2">
@@ -354,6 +542,31 @@ function ToggleRow({ label, checked, onChange }: ToggleRowProps) {
         />
       </div>
     </label>
+  );
+}
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+function ToggleSwitch({ checked, onChange }: ToggleSwitchProps) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer ${
+        checked ? "bg-bamboo" : "bg-paper-deep/50"
+      }`}
+    >
+      <div
+        className={`absolute top-[2px] w-[17px] h-[17px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.15)] transition-transform duration-200 ${
+          checked ? "translate-x-[18px]" : "translate-x-[2px]"
+        }`}
+      />
+    </button>
   );
 }
 

@@ -1735,6 +1735,10 @@ mod tests {
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: "Ctrl+Shift+K".into(),
+            background_image: String::new(),
+            background_image_opacity: 0.5,
+            background_image_enabled: false,
+            background_image_fit: "cover".into(),
         };
 
         let error = match shortcut_bindings_from_config(&config) {
@@ -1776,6 +1780,10 @@ mod tests {
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: String::new(),
+            background_image: String::new(),
+            background_image_opacity: 0.5,
+            background_image_enabled: false,
+            background_image_fit: "cover".into(),
         };
         let next = AppConfig {
             locale: "en-US".into(),
@@ -1798,6 +1806,10 @@ mod tests {
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: "Ctrl+Shift+H".into(),
+            background_image: "/path/to/image.png".into(),
+            background_image_opacity: 0.8,
+            background_image_enabled: true,
+            background_image_fit: "contain".into(),
         };
 
         assert_eq!(
